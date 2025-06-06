@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Work Hours Calculator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(145deg, #f3f3f3, #e0e0e0);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #222;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      background-color: #007aff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #005ecc;
+    }
+
+    /* Back button specific style */
+    button.back {
+      background-color: white;
+      color: #007aff;
+      border: 1px solid #007aff;
+    }
+
+    button.back:hover {
+      background-color: #f0f8ff;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      color: #111;
+      text-align: center;
+    }
+
+    .step {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    #meterContainer {
+      margin-top: 24px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    #meterBar {
+      width: 100%;
+      height: 16px;
+      border-radius: 10px;
+      background: linear-gradient(to right, #92e3a9, #f9d976, #f98181);
+      position: relative;
+    }
+
+    #meterPointer {
+      position: absolute;
+      top: -6px;
+      width: 12px;
+      height: 28px;
+      background-color: #444;
+      border-radius: 6px;
+      transition: left 0.4s ease;
+    }
+
+    .label {
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      text-align: center;
+      color: #555;
+    }
+
+    #emotion {
+      font-size: 2rem;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="glass">
+    <h1>💼 Work Hours Calculator</h1>
+
+    <!-- Step 1 -->
+    <div id="step1" class="step active">
+      <input type="number" id="monthlySalary" placeholder="Your monthly salary (₹)" />
+      <input type="number" id="workHours" placeholder="Hours you work per day" />
+      <input type="number" id="workDays" placeholder="Days you work per week" />
+      <button onclick="goToStep2()">Next</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="step2" class="step">
+      <input type="number" id="productPrice" placeholder="Product price (₹)" />
+      <button onclick="calculateHours()">Calculate</button>
+      <button class="back" onclick="goToStep1()">← Back</button>
+    </div>
+
+    <div id="result"></div>
+
+    <div id="meterContainer">
+      <div class="label">Worth-it Meter</div>
+      <div id="meterBar">
+        <div id="meterPointer"></div>
+      </div>
+      <div id="emotion">😊</div>
+    </div>
+  </div>
+
+  <script>
+    // Load saved values from localStorage
+    window.onload = function () {
+      if (localStorage.salary) document.getElementById("monthlySalary").value = localStorage.salary;
+      if (localStorage.hours) document.getElementById("workHours").value = localStorage.hours;
+      if (localStorage.days) document.getElementById("workDays").value = localStorage.days;
+      if (localStorage.price) document.getElementById("productPrice").value = localStorage.price;
+    };
+
+    function goToStep2() {
+      const salary = parseFloat(document.getElementById("monthlySalary").value);
+      const hours = parseFloat(document.getElementById("workHours").value);
+      const days = parseFloat(document.getElementById("workDays").value);
+
+      if (isNaN(salary) || isNaN(hours) || isNaN(days)) {
+        alert("Please fill all fields with valid numbers.");
+        return;
+      }
+
+      localStorage.salary = salary;
+      localStorage.hours = hours;
+      localStorage.days = days;
+
+      window.userMonthlySalary = salary;
+      window.userWorkHours = hours;
+      window.userWorkDays = days;
+
+      document.getElementById("step1").classList.remove("active");
+      document.getElementById("step2").classList.add("active");
+    }
+
+    function goToStep1() {
+      document.getElementById("step2").classList.remove("active");
+      document.getElementById("step1").classList.add("active");
+    }
+
+    function calculateHours() {
+      const price = parseFloat(document.getElementById("productPrice").value);
+      const resultDiv = document.getElementById("result");
+      localStorage.price = price;
+
+      if (isNaN(price)) {
+        resultDiv.innerHTML = "⚠️ Please enter a valid product price.";
+        document.getElementById("meterContainer").style.opacity = 0;
+        return;
+      }
+
+      const salary = window.userMonthlySalary;
+      const hoursPerDay = window.userWorkHours;
+      const daysPerWeek = window.userWorkDays;
+      const weeksPerMonth = 4;
+
+      const totalHoursPerMonth = hoursPerDay * daysPerWeek * weeksPerMonth;
+      const hourlyRate = salary / totalHoursPerMonth;
+      const totalHoursNeeded = price / hourlyRate;
+      const totalDays = totalHoursNeeded / hoursPerDay;
+
+      const years = Math.floor(totalDays / 360);
+      const months = Math.floor((totalDays % 360) / 30);
+      const days = Math.floor(totalDays % 30);
+      const hours = totalHoursNeeded % hoursPerDay;
+
+      let parts = [];
+      if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
+      if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`);
+      if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+      parts.push(`${hours.toFixed(2)} hour${hours.toFixed(2) != 1 ? 's' : ''}`);
+
+      resultDiv.innerHTML = `🕒 You need to work <strong>${parts.join(', ')}</strong> to afford this.`;
+
+      // Meter logic
+      const meter = document.getElementById("meterContainer");
+      const pointer = document.getElementById("meterPointer");
+      const bar = document.getElementById("meterBar");
+      const emotion = document.getElementById("emotion");
+
+      let maxDays = 60;
+      let percent = Math.min(1, totalDays / maxDays);
+      let pointerPos = percent * bar.offsetWidth;
+      pointer.style.left = `${pointerPos - 6}px`;
+      meter.style.opacity = 1;
+
+      // Emoji feedback
+      if (totalDays <= 7) {
+        emotion.textContent = "😊";
+      } else if (totalDays <= 30) {
+        emotion.textContent = "🤔";
+      } else {
+        emotion.textContent = "😞";
+      }
+    }
+  </script>
+</body>
+</html>
